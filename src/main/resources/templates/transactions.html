@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Transaction History</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <h1><i class="fa-solid fa-clock-rotate-left"></i> Library Management Transactions</h1>
+        <nav>
+            <a th:href="@{/dashboard}"><i class="fa-solid fa-gauge"></i> Dashboard</a> |
+            <a th:href="@{/books}"><i class="fa-solid fa-book"></i> Books</a> |
+            <a th:href="@{/transactions}"><i class="fa-solid fa-clock-rotate-left"></i> Transactions</a> |
+            <a th:href="@{/profile}"><i class="fa-solid fa-user"></i> Profile</a> |
+            <a th:href="@{/logout}"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+        </nav>
+    </header>
+    <main style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-height: 70vh;">
+        <div th:if="${errorMessage}" class="error-message" th:text="${errorMessage}" style="color: #dc3545; font-weight: bold; margin-bottom: 1rem;"></div>
+        <h2 style="margin-top: 2rem;"><i class="fa-solid fa-clock-rotate-left"></i> Transactions</h2>
+        <div style="width: 90%; max-width: 1100px; margin: 2rem auto 0 auto; background: #fff; border-radius: 18px; box-shadow: 0 2px 16px #0001; padding: 2rem;">
+            <table style="width: 100%;">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Book</th>
+                        <th>User</th>
+                        <th>Purchase Date</th>
+                        <th>Due Date</th>
+                        <th>Return Date</th>
+                        <th th:if="${!isAdmin}">Fine</th>
+                        <th th:if="${!isAdmin}">Borrowed/Returned</th>
+                            <th th:if="${isAdmin}">Fine</th>
+                            <th th:if="${isAdmin}">Request</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:if="${transactions == null or #lists.isEmpty(transactions)}">
+                        <td colspan="9" style="text-align:center;">No transactions found.</td>
+                    </tr>
+                    <tr th:each="transaction : ${transactions}" th:unless="${transactions == null or #lists.isEmpty(transactions)}">
+                        <td th:text="${transaction.id}">-</td>
+                        <td th:text="${transaction.book != null ? transaction.book.title : 'N/A'}">-</td>
+                        <td th:text="${transaction.member != null ? transaction.member.name : 'N/A'}">-</td>
+                        <td th:text="${transaction != null and transaction.status != null and transaction.purchaseDate != null ? transaction.purchaseDate : 'N/A'}">-</td>
+                        <td th:text="${transaction.dueDate != null ? transaction.dueDate : 'N/A'}">-</td>
+                        <td th:text="${transaction.returnDate != null ? transaction.returnDate : 'N/A'}">-</td>
+                        <!-- User columns -->
+                        <td th:if="${!isAdmin}">
+                            <span th:text="${transaction.fine != null ? #numbers.formatDecimal(transaction.fine, 1, 1) : '0.0'}">-</span>
+                        </td>
+                        <td th:if="${!isAdmin}">
+                            <span th:if="${transaction != null and transaction.status != null and transaction.status.name() == 'REJECTED'}" style="color:#dc3545;">Request is rejected</span>
+                            <span th:if="${transaction != null and transaction.returnDate != null}" style="color:#28a745; font-weight:bold;">Returned</span>
+                            <span th:if="${transaction != null and transaction.status != null and transaction.status.name() == 'PURCHASED' and transaction.returnDate == null}">
+                                <form th:action="@{'/transactions/return/' + ${transaction.id}}" method="post" style="display:block; margin:0; padding:0; width:100%;">
+                                    <select name="status" onchange="if(this.value==='RETURNED'){this.form.submit();}" style="width:100%; max-width:140px; min-width:80px; box-sizing:border-box; padding:0.15rem 0.5rem; border-radius:6px; border:1px solid #bbb; background:#f8f9fa; font-size:1em; font-family:inherit; color:#222; text-align:center; box-shadow:none; outline:none; margin:0;">
+                                        <option value="BORROWED" th:selected="${transaction.returnDate == null}">Borrowed</option>
+                                        <option value="RETURNED" th:selected="${transaction.returnDate != null}">Returned</option>
+                                    </select>
+                                </form>
+                            </span>
+                            <span th:if="${transaction != null and transaction.status != null and transaction.status.name() == 'PENDING'}" style="color:#ffc107; font-weight:bold;">Borrowed</span>
+                        </td>
+                        <!-- Removed extra user column -->
+                        <!-- Admin columns -->
+                        <td th:if="${isAdmin}">
+                            <span th:text="${transaction.fine != null ? #numbers.formatDecimal(transaction.fine, 1, 1) : '0.0'}">-</span>
+                        </td>
+                        <td th:if="${isAdmin}">
+                            <div style="display:flex; flex-direction:row; align-items:center; justify-content:center; gap:0.5rem; padding:0.1rem 0; min-width:120px;">
+                                <form th:if="${transaction != null and transaction.status != null and transaction.status.name() == 'PENDING'}" th:action="@{'/transactions/approve/' + ${transaction.id}}" method="post" style="width:48%; margin:0;">
+                                    <button type="submit" style="background: #28a745; color: #fff; border: none; border-radius: 4px; padding: 0.5rem 0.7rem; cursor: pointer; width:100%; font-size:1em;">Approve</button>
+                                </form>
+                                <form th:if="${transaction != null and transaction.status != null and transaction.status.name() == 'PENDING'}" style="width:48%; margin:0;">
+                                    <button type="button" th:onclick="|showRejectModal(${transaction.id})|" style="background: #dc3545; color: #fff; border: none; border-radius: 4px; padding: 0.5rem 0.7rem; cursor: pointer; width:100%; font-size:1em;">Reject</button>
+                                </form>
+                                <span th:if="${transaction != null and transaction.status != null and transaction.status.name() == 'REJECTED'}" style="color:#dc3545; font-weight:bold; width:100%; text-align:center;">Rejected</span>
+                                <span th:if="${transaction != null and transaction.status != null and transaction.status.name() == 'PURCHASED'}" style="color:#28a745; font-weight:bold; width:100%; text-align:center;">Approved</span>
+                                <span th:if="${transaction != null and transaction.status != null and transaction.status.name() == 'RETURNED'}" style="color:#28a745; font-weight:bold; width:100%; text-align:center;">Returned</span>
+                            </div>
+                        </td>
+                            </div>
+                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </main>
+                </tr>
+            </tbody>
+        </table>
+    </main>
+    <div th:if="${toast}" class="toast" th:text="${toast}"></div>
+    <script>
+    window.onload = function() {
+        var toast = document.querySelector('.toast');
+        if (toast) {
+            toast.classList.add('show');
+            setTimeout(function(){ toast.classList.remove('show'); }, 3000);
+        }
+    };
+    </script>
+<!-- Reject Reason Modal -->
+<div id="rejectModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); z-index:9999; align-items:center; justify-content:center;">
+    <div style="background:#fff; padding:2rem; border-radius:8px; min-width:300px; max-width:90vw; box-shadow:0 2px 16px rgba(0,0,0,0.15); position:relative;">
+        <h3 style="margin-top:0;">Reject Transaction</h3>
+        <form id="rejectForm" method="post">
+            <input type="hidden" name="transactionId" id="rejectTransactionId" />
+            <label>Reason for rejection:</label>
+            <textarea name="reason" id="rejectReason" required style="width:100%; min-height:60px; margin-bottom:1rem; border-radius:4px; border:1px solid #ccc; padding:0.5rem;"></textarea>
+            <div style="display:flex; gap:1rem;">
+                <button type="submit" style="background:#dc3545; color:#fff; border:none; border-radius:4px; padding:0.4rem 1.2rem;">Reject</button>
+                <button type="button" onclick="hideRejectModal()" style="background:#ccc; color:#222; border:none; border-radius:4px; padding:0.4rem 1.2rem;">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+function showRejectModal(transactionId) {
+    document.getElementById('rejectModal').style.display = 'flex';
+    document.getElementById('rejectTransactionId').value = transactionId;
+    document.getElementById('rejectForm').action = '/transactions/reject/' + transactionId;
+    document.getElementById('rejectReason').value = '';
+}
+function hideRejectModal() {
+    document.getElementById('rejectModal').style.display = 'none';
+}
+</script>
+</body>
+                    <span th:if="${transaction != null and transaction.status != null and transaction.status.name() == 'RETURNED' and transaction.reason != null}" style="display:block; margin-top:0.3rem;">
+                        <button type="button" th:data-reason="${transaction.reason}" onclick="showReasonPopup(this)" style="background:#ffc107; color:#222; border:none; border-radius:4px; padding:0.2rem 0.7rem; font-size:0.95em; cursor:pointer;">View Reason</button>
+                    </span>
+                    <script>
+                    function showReasonPopup(btn) {
+                        var reason = btn.getAttribute('data-reason');
+                        alert('Reason for rejection: ' + reason);
+                    }
+                    </script>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Edit Book</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+<header>
+    <h1><i class="fa-solid fa-gauge"></i> Library Dashboard</h1>
+    <nav>
+        <a th:href="@{/dashboard}"><i class="fa-solid fa-gauge"></i> Dashboard</a> |
+        <a th:href="@{/books}"><i class="fa-solid fa-book"></i> Books</a> |
+        <a th:href="@{/transactions}"><i class="fa-solid fa-clock-rotate-left"></i> Transactions</a> |
+        <a th:href="@{/profile}"><i class="fa-solid fa-user"></i> Profile</a> |
+        <a th:href="@{/logout}"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+    </nav>
+</header>
+<main>
+    <h2><i class="fa-solid fa-pen"></i> Edit Book</h2>
+    <form th:action="@{'/books/edit/' + ${book.id}}" method="post">
+        <label><i class="fa-solid fa-book"></i> Title: <input type="text" name="title" th:value="${book.title}" required/></label><br/>
+        <label><i class="fa-solid fa-user"></i> Author: <input type="text" name="author" th:value="${book.author}" required/></label><br/>
+        <label><i class="fa-solid fa-barcode"></i> ISBN: <input type="text" name="isbn" th:value="${book.isbn}" required/></label><br/>
+        <label><i class="fa-solid fa-list"></i> Category:
+            <select name="category" required>
+                <option value="">--Select Category--</option>
+                <option value="Fiction" th:selected="${book.category == 'Fiction'}">Fiction</option>
+                <option value="Non-Fiction" th:selected="${book.category == 'Non-Fiction'}">Non-Fiction</option>
+                <option value="Science" th:selected="${book.category == 'Science'}">Science</option>
+                <option value="Technology" th:selected="${book.category == 'Technology'}">Technology</option>
+                <option value="History" th:selected="${book.category == 'History'}">History</option>
+                <option value="Biography" th:selected="${book.category == 'Biography'}">Biography</option>
+                <option value="Children" th:selected="${book.category == 'Children'}">Children</option>
+                <option value="Other" th:selected="${book.category == 'Other'}">Other</option>
+            </select>
+        </label><br/>
+        <label><i class="fa-solid fa-layer-group"></i> Total Copies: <input type="number" name="totalCopies" th:value="${book.totalCopies}" min="1" required/></label><br/>
+        <button type="submit"><i class="fa-solid fa-floppy-disk"></i> Update Book</button>
+    </form>
+</main>
+<div th:if="${toast}" class="toast" th:text="${toast}"></div>
+<script>
+window.onload = function() {
+    var toast = document.querySelector('.toast');
+    if (toast) {
+        toast.classList.add('show');
+        setTimeout(function(){ toast.classList.remove('show'); }, 3000);
+    }
+};
+</script>
+</body>
+</html>
