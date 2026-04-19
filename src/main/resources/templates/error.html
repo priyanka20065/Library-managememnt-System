@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Error</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header>
+    <div class="logo" style="display:flex;align-items:center;gap:10px;">
+        <img src="https://i.pinimg.com/1200x/f8/35/ea/f835ea876b57da00c6754a4e2065549a.jpg" alt="Logo" style="height:32px;vertical-align:middle;border-radius:6px;"> 
+        <span style="font-weight:bold;font-size:1.5em;">Library System</span>
+    </div>
+    <nav>
+        <a th:href="@{/dashboard}">Dashboard</a>
+        <a th:href="@{/books}">Books</a>
+        <span th:if="${isAdmin}"><a th:href="@{/members}">Members</a></span>
+        <a th:href="@{/transactions}">Transactions</a>
+        <a th:href="@{/profile}">Profile</a>
+        <a th:href="@{/logout}">Logout</a>
+    </nav>
+</header>
+<main>
+    <h2>Error</h2>
+    <div class="card">
+        <p th:text="${errorMessage}">An error occurred.</p>
+    </div>
+</main>
+</body>
+</html>

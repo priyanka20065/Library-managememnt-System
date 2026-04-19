@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Add Member</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header>
+    <div class="logo" style="display:flex;align-items:center;gap:10px;">
+        <img src="https://i.pinimg.com/1200x/f8/35/ea/f835ea876b57da00c6754a4e2065549a.jpg" alt="Logo" style="height:32px;vertical-align:middle;border-radius:6px;"> 
+        <span style="font-weight:bold;font-size:1.5em;">Library System</span>
+    </div>
+    <nav>
+        <a th:href="@{/dashboard}">Dashboard</a>
+        <a th:href="@{/books}">Books</a>
+        <a th:href="@{/transactions}">Transactions</a>
+        <a th:href="@{/profile}">Profile</a>
+        <a th:href="@{/logout}">Logout</a>
+    </nav>
+</header>
+<main>
+    <h2>Add Member</h2>
+    <form th:action="@{/members/add}" method="post">
+        <label>Name: <input type="text" name="name" required/></label><br/>
+        <label>Member ID: <input type="text" name="memberId" required/></label><br/>
+        <label>Username: <input type="text" name="username" required/></label><br/>
+        <label>Email: <input type="email" name="email" required/></label><br/>
+        <label>Password: <input type="password" name="password" required/></label><br/>
+        <label>Role:
+            <select name="role">
+                <option value="MEMBER">MEMBER</option>
+                <option value="ADMIN">ADMIN</option>
+            </select>
+        </label><br/>
+        <button type="submit">Add Member</button>
+    </form>
+</main>
+<div th:if="${toast}" class="toast" th:text="${toast}"></div>
+<script>
+window.onload = function() {
+    var toast = document.querySelector('.toast');
+    if (toast) {
+        toast.classList.add('show');
+        setTimeout(function(){ toast.classList.remove('show'); }, 3000);
+    }
+};
+</script>
+</body>
+</html>
